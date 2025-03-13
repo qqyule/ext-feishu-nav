@@ -80,11 +80,12 @@ async function sendToFeishu(url) {
 
     // 动态设置字段名
     requestData.fields[feishuConfig.fieldName] = {
-      "link": url,
-      "text": url
+      "text": url,
+      "type": "url",
+      "url": url
     };
 
-    // 发送请求到飞书API
+    // 发送请求到飞书API - 更新API地址
     const response = await fetch(`https://open.feishu.cn/open-apis/bitable/v1/apps/${feishuConfig.appToken}/tables/${feishuConfig.tableId}/records`, {
       method: 'POST',
       headers: {

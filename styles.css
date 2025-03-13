@@ -106,6 +106,24 @@ a:hover {
   text-decoration: underline;
 }
 
+/* 飞书链接样式 */
+.feishu-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--primary-color);
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary-light);
+  transition: var(--transition);
+}
+
+.feishu-link:hover {
+  background-color: rgba(51, 112, 255, 0.2);
+  text-decoration: none;
+  color: var(--primary-hover);
+}
+
 /* 按钮样式 */
 .button {
   display: inline-flex;
@@ -178,6 +196,28 @@ a:hover {
   margin-bottom: 16px;
 }
 
+/* 并排表单样式 */
+.inline-form-group {
+  display: flex;
+  align-items: flex-start;
+}
+
+.inline-form-group label {
+  width: 180px;
+  flex-shrink: 0;
+  padding-top: 8px;
+  margin-right: 16px;
+}
+
+.inline-form-group .input-container {
+  flex: 1;
+}
+
+.form-label {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
 label {
   display: block;
   margin-bottom: 8px;
@@ -221,6 +261,78 @@ textarea {
   font-size: 12px;
   color: var(--text-light);
   margin-top: 4px;
+}
+
+/* 自定义复选框样式 */
+.custom-checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.custom-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0;
+  font-weight: normal;
+}
+
+.checkbox-icon {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-color: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-right: 8px;
+  transition: all 0.2s ease;
+}
+
+.checkbox-icon:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox:checked~.checkbox-label .checkbox-icon {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.custom-checkbox:checked~.checkbox-label .checkbox-icon:after {
+  display: block;
+}
+
+.custom-checkbox:focus~.checkbox-label .checkbox-icon {
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.checkbox-text {
+  font-weight: 500;
+}
+
+/* 悬停效果 */
+.checkbox-label:hover .checkbox-icon {
+  border-color: var(--primary-color);
 }
 
 /* 开关样式 */
@@ -379,13 +491,34 @@ input:checked+.slider:before {
   justify-content: center;
 }
 
+/* 排除域名列表样式 */
+.excluded-domains {
+  margin-bottom: 8px;
+  min-height: 30px;
+}
+
+.add-domain-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.add-domain-container input {
+  flex: 1;
+}
+
+.add-domain-container button {
+  height: 36px;
+  padding: 0 12px;
+}
+
 /* 布局组件 */
 .header {
   display: flex;
   align-items: center;
-  padding: 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .header img {
@@ -403,22 +536,96 @@ input:checked+.slider:before {
   background-color: var(--bg-secondary);
   border-radius: var(--radius-md);
   padding: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .section h2 {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   font-size: 16px;
 }
 
+/* 信息框样式 */
+.info-box {
+  background-color: var(--info-light);
+  border-left: 3px solid var(--info-color);
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.info-box p {
+  margin: 4px 0;
+}
+
+/* 底部样式 */
 .footer {
-  margin-top: 24px;
-  padding: 16px;
+  margin-top: 30px;
+  padding: 20px 0;
   text-align: center;
-  font-size: 12px;
-  color: var(--text-light);
   border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-info {
+  text-align: left;
+}
+
+.footer-info p {
+  margin: 4px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.footer-copyright {
+  color: var(--text-light) !important;
+  font-size: 12px !important;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  transition: var(--transition);
+}
+
+.footer-link:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 600px) {
+  .footer-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .footer-info {
+    text-align: center;
+  }
 }
 
 /* 弹出窗口特定样式 */
@@ -531,4 +738,45 @@ input:checked+.slider:before {
   .button {
     width: 100%;
   }
+}
+
+/* 提示图标样式 */
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  cursor: help;
+  position: relative;
+  color: var(--text-light);
+  transition: color 0.2s;
+}
+
+.tooltip-icon:hover {
+  color: var(--primary-color);
+}
+
+/* 图片提示 */
+.tooltip-icon[data-tooltip-image]:hover::before {
+  content: '';
+  position: absolute;
+  display: block;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 10px;
+  width: 300px;
+  height: 200px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  border: 1px solid var(--border-color);
+  background-color: white;
+}
+
+.tooltip-icon[data-tooltip-image="images/shot1.png"]:hover::before {
+  background-image: url('images/shot1.png');
 }

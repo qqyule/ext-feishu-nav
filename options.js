@@ -136,8 +136,8 @@ async function testConnection() {
 
     const token = tokenResult.tenant_access_token;
 
-    // 测试表格访问
-    const testResponse = await fetch(`https://open.feishu.cn/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}`, {
+    // 测试表格访问 - 更新API地址
+    const testResponse = await fetch(`https://open.feishu.cn/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}/records?page_size=1`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -148,9 +148,9 @@ async function testConnection() {
     const testResult = await testResponse.json();
 
     if (testResult.code === 0) {
-      const tableName = testResult.data?.table?.name || '未知';
-      updateStatus('连接成功！多维表格名称: ' + tableName, 'success');
-      showSuccessNotification('连接成功', `成功连接到多维表格: ${tableName}`);
+      const tableName = testResult.data?.table?.name || testResult.data?.items?.[0]?.fields?.['标题'] || '未知';
+      updateStatus('连接成功！多维表格访问正常', 'success');
+      showSuccessNotification('连接成功', `成功连接到飞书多维表格`);
     } else {
       throw new Error(`访问表格失败: ${testResult.msg}`);
     }
@@ -307,7 +307,31 @@ function removeDomain(domain) {
 }
 
 // 事件监听
-document.addEventListener('DOMContentLoaded', loadSavedConfig);
+document.addEventListener('DOMContentLoaded', () => {
+  loadSavedConfig();
+
+  // 初始化提示图标
+  initTooltips();
+});
+
+/**
+ * 初始化提示图标
+ */
+function initTooltips() {
+  // 获取所有带有data-tooltip-image属性的提示图标
+  const tooltipIcons = document.querySelectorAll('.tooltip-icon[data-tooltip-image]');
+
+  // 为每个提示图标添加鼠标事件
+  tooltipIcons.forEach(icon => {
+    // 创建图片预加载
+    const imagePath = icon.getAttribute('data-tooltip-image');
+    if (imagePath) {
+      const img = new Image();
+      img.src = imagePath;
+    }
+  });
+}
+
 saveButton.addEventListener('click', saveConfig);
 testButton.addEventListener('click', testConnection);
 addDomainButton.addEventListener('click', () => addDomain(newDomainInput.value));
