@@ -1,0 +1,15 @@
+{
+  "name": "feishu-bitable-tool",
+  "version": "1.0.0",
+  "description": "飞书多维表格工具 - 自动捕获URL并发送到飞书多维表格",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "canvas": "^3.1.0"
+  }
+}

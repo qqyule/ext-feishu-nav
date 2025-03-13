@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="64" cy="64" r="60" fill="#3370FF"/>
+
+  <!-- 表格图标 -->
+  <rect x="34" y="34" width="60" height="60" rx="4" fill="white"/>
+
+  <!-- 表格线条 -->
+  <line x1="34" y1="50" x2="94" y2="50" stroke="#3370FF" stroke-width="2"/>
+  <line x1="34" y1="66" x2="94" y2="66" stroke="#3370FF" stroke-width="2"/>
+  <line x1="34" y1="82" x2="94" y2="82" stroke="#3370FF" stroke-width="2"/>
+  <line x1="50" y1="34" x2="50" y2="94" stroke="#3370FF" stroke-width="2"/>
+  <line x1="66" y1="34" x2="66" y2="94" stroke="#3370FF" stroke-width="2"/>
+  <line x1="82" y1="34" x2="82" y2="94" stroke="#3370FF" stroke-width="2"/>
+
+  <!-- 链接符号 -->
+  <path d="M94 34L106 22M106 22H96M106 22V32" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
