@@ -10,13 +10,9 @@ const appSecretInput = document.getElementById('appSecret');
 const appTokenInput = document.getElementById('appToken');
 const tableIdInput = document.getElementById('tableId');
 const fieldNameInput = document.getElementById('fieldName');
-const autoCaptureCheckbox = document.getElementById('autoCapture');
 const saveButton = document.getElementById('saveButton');
 const testButton = document.getElementById('testButton');
 const statusDiv = document.getElementById('status');
-const excludedDomainsDiv = document.getElementById('excludedDomains');
-const newDomainInput = document.getElementById('newDomain');
-const addDomainButton = document.getElementById('addDomainButton');
 
 // 默认配置
 const defaultConfig = {
@@ -31,7 +27,7 @@ const defaultConfig = {
  * 加载保存的配置
  */
 function loadSavedConfig() {
-  chrome.storage.sync.get(['feishuConfig', 'autoCapture', 'excludedDomains'], (result) => {
+  chrome.storage.sync.get(['feishuConfig'], (result) => {
     const config = result.feishuConfig || {};
 
     // 填充表单
@@ -40,12 +36,6 @@ function loadSavedConfig() {
     appTokenInput.value = config.appToken || defaultConfig.appToken;
     tableIdInput.value = config.tableId || defaultConfig.tableId;
     fieldNameInput.value = config.fieldName || defaultConfig.fieldName;
-
-    // 自动捕获设置
-    autoCaptureCheckbox.checked = result.autoCapture === true;
-
-    // 渲染排除域名列表
-    renderExcludedDomains(result.excludedDomains || []);
   });
 }
 
@@ -70,8 +60,7 @@ function saveConfig() {
 
   // 保存飞书配置
   chrome.storage.sync.set({
-    feishuConfig: config,
-    autoCapture: autoCaptureCheckbox.checked
+    feishuConfig: config
   }, () => {
     // 恢复按钮状态
     saveButton.disabled = false;
@@ -190,122 +179,6 @@ function updateStatus(message, type = 'info') {
   }
 }
 
-/**
- * 渲染排除域名列表
- * @param {string[]} domains - 域名数组
- */
-function renderExcludedDomains(domains) {
-  excludedDomainsDiv.innerHTML = '';
-
-  if (domains.length === 0) {
-    const emptyMessage = document.createElement('div');
-    emptyMessage.className = 'help-text';
-    emptyMessage.textContent = '暂无排除域名，添加后将不会自动捕获这些域名的URL';
-    excludedDomainsDiv.appendChild(emptyMessage);
-    return;
-  }
-
-  domains.forEach(domain => {
-    const tag = document.createElement('div');
-    tag.className = 'tag';
-    tag.innerHTML = `
-      ${domain}
-      <button class="tag-close" data-domain="${domain}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    `;
-    excludedDomainsDiv.appendChild(tag);
-  });
-
-  // 添加删除按钮事件
-  const deleteButtons = excludedDomainsDiv.querySelectorAll('.tag-close');
-  deleteButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const domainToRemove = button.getAttribute('data-domain');
-      removeDomain(domainToRemove);
-    });
-  });
-}
-
-/**
- * 添加排除域名
- * @param {string} domain - 要添加的域名
- */
-function addDomain(domain) {
-  domain = domain.trim().toLowerCase();
-
-  if (!domain) return;
-
-  // 简单验证域名格式
-  if (!/^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i.test(domain)) {
-    updateStatus('请输入有效的域名格式', 'error');
-    showErrorNotification('格式错误', '请输入有效的域名格式');
-    return;
-  }
-
-  // 显示加载状态
-  addDomainButton.disabled = true;
-  addDomainButton.innerHTML = `<span class="loading"></span>`;
-
-  chrome.storage.sync.get(['excludedDomains'], (result) => {
-    const domains = result.excludedDomains || [];
-
-    if (domains.includes(domain)) {
-      updateStatus('该域名已在排除列表中', 'error');
-      showWarningNotification('添加失败', '该域名已在排除列表中');
-
-      // 恢复按钮状态
-      addDomainButton.disabled = false;
-      addDomainButton.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        添加
-      `;
-      return;
-    }
-
-    domains.push(domain);
-    chrome.storage.sync.set({ excludedDomains: domains }, () => {
-      renderExcludedDomains(domains);
-      newDomainInput.value = '';
-      updateStatus('域名已添加到排除列表', 'success');
-      showSuccessNotification('添加成功', `域名 ${domain} 已添加到排除列表`);
-
-      // 恢复按钮状态
-      addDomainButton.disabled = false;
-      addDomainButton.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        添加
-      `;
-    });
-  });
-}
-
-/**
- * 移除排除域名
- * @param {string} domain - 要移除的域名
- */
-function removeDomain(domain) {
-  chrome.storage.sync.get(['excludedDomains'], (result) => {
-    const domains = result.excludedDomains || [];
-    const updatedDomains = domains.filter(d => d !== domain);
-
-    chrome.storage.sync.set({ excludedDomains: updatedDomains }, () => {
-      renderExcludedDomains(updatedDomains);
-      updateStatus('域名已从排除列表中移除', 'success');
-      showInfoNotification('已移除', `域名 ${domain} 已从排除列表中移除`);
-    });
-  });
-}
-
 // 事件监听
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedConfig();
@@ -334,9 +207,3 @@ function initTooltips() {
 
 saveButton.addEventListener('click', saveConfig);
 testButton.addEventListener('click', testConnection);
-addDomainButton.addEventListener('click', () => addDomain(newDomainInput.value));
-newDomainInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    addDomain(newDomainInput.value);
-  }
-});

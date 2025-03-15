@@ -6,7 +6,6 @@
 
 // DOM元素
 const statusElement = document.getElementById('status');
-const autoCaptureCheckbox = document.getElementById('autoCapture');
 const currentUrlInput = document.getElementById('currentUrl');
 const captureButton = document.getElementById('captureButton');
 const optionsButton = document.getElementById('optionsButton');
@@ -39,7 +38,7 @@ function isConfigComplete(feishuConfig) {
  * 更新UI状态
  */
 function updateUIState() {
-  chrome.storage.sync.get(['feishuConfig', 'autoCapture'], (result) => {
+  chrome.storage.sync.get(['feishuConfig'], (result) => {
     // 检查飞书配置是否完整
     const feishuConfig = result.feishuConfig || {};
     if (isConfigComplete(feishuConfig)) {
@@ -49,10 +48,25 @@ function updateUIState() {
       updateStatus('请先完成飞书API配置', 'error');
       captureButton.disabled = true;
     }
-
-    // 设置自动捕获开关状态
-    autoCaptureCheckbox.checked = result.autoCapture === true;
   });
+}
+
+/**
+ * 在popup窗口内显示成功通知
+ * @param {string} title - 通知标题
+ * @param {string} message - 通知内容
+ */
+function showPopupSuccessNotification(title, message) {
+  updateStatus(message, 'success');
+}
+
+/**
+ * 在popup窗口内显示错误通知
+ * @param {string} title - 通知标题
+ * @param {string} message - 通知内容
+ */
+function showPopupErrorNotification(title, message) {
+  updateStatus(message, 'error');
 }
 
 // 初始化
@@ -69,20 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 监听存储变化，更新UI状态
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && (changes.feishuConfig || changes.autoCapture)) {
+  if (namespace === 'sync' && changes.feishuConfig) {
     updateUIState();
-  }
-});
-
-// 自动捕获开关事件
-autoCaptureCheckbox.addEventListener('change', () => {
-  chrome.storage.sync.set({ autoCapture: autoCaptureCheckbox.checked });
-
-  // 显示通知
-  if (autoCaptureCheckbox.checked) {
-    showSuccessNotification('自动捕获已启用', '插件将自动记录您浏览的URL');
-  } else {
-    showInfoNotification('自动捕获已禁用', '您可以手动添加URL或重新启用自动捕获');
   }
 });
 
@@ -106,11 +108,11 @@ captureButton.addEventListener('click', async () => {
 
       if (response && response.status === 'received') {
         updateStatus('URL已成功添加到飞书多维表格', 'success');
-        showSuccessNotification('添加成功', 'URL已成功添加到飞书多维表格');
+        showPopupSuccessNotification('添加成功', 'URL已成功添加到飞书多维表格');
       }
     } catch (error) {
       updateStatus('添加URL失败: ' + error.message, 'error');
-      showErrorNotification('添加失败', '无法添加URL: ' + error.message);
+      showPopupErrorNotification('添加失败', '无法添加URL: ' + error.message);
     } finally {
       // 恢复按钮状态
       captureButton.disabled = false;

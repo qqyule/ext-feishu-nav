@@ -64,58 +64,61 @@ async function getTenantAccessToken() {
  */
 async function sendToFeishu(url) {
   try {
-    // 检查配置是否完整
-    if (!feishuConfig.appId || !feishuConfig.appSecret || !feishuConfig.appToken || !feishuConfig.tableId || !feishuConfig.fieldName) {
-      console.error('飞书配置不完整，请在选项页面设置');
-      return;
+    // 获取飞书配置
+    const { feishuConfig } = await chrome.storage.sync.get(['feishuConfig']);
+
+    if (!feishuConfig) {
+      throw new Error('未找到飞书配置');
     }
 
-    // 获取tenant_access_token
+    // 获取访问令牌
     const token = await getTenantAccessToken();
 
     // 构建请求数据
-    const requestData = {
-      fields: {}
+    const data = {
+      fields: {
+        [feishuConfig.fieldName]: url
+      }
     };
 
-    // 动态设置字段名
-    requestData.fields[feishuConfig.fieldName] = {
-      "text": url,
-      "type": "url",
-      "url": url
-    };
-
-    // 发送请求到飞书API - 更新API地址
+    // 发送请求到飞书API
     const response = await fetch(`https://open.feishu.cn/open-apis/bitable/v1/apps/${feishuConfig.appToken}/tables/${feishuConfig.tableId}/records`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(requestData)
+      body: JSON.stringify(data)
     });
 
+    // 解析响应
     const result = await response.json();
 
     if (result.code === 0) {
       console.log('数据成功添加到飞书多维表格');
-      // 通知用户
-      showSuccessNotification(url);
+      // 通知用户，不显示系统通知
+      showSuccessNotification(url, false);
     } else {
       console.error('添加数据失败:', result);
-      showErrorNotification(url, result.msg || '未知错误');
+      showErrorNotification(url, result.msg || '未知错误', false);
     }
   } catch (error) {
     console.error('发送数据到飞书时出错:', error);
-    showErrorNotification(url, error.message);
+    showErrorNotification(url, error.message, false);
   }
 }
 
 /**
  * 显示成功通知
  * @param {string} url - 添加的URL
+ * @param {boolean} [showSystemNotification=false] - 是否显示系统通知
  */
-function showSuccessNotification(url) {
+function showSuccessNotification(url, showSystemNotification = false) {
+  // 如果不需要显示系统通知，则直接返回
+  if (!showSystemNotification) {
+    return;
+  }
+
   chrome.notifications.create({
     type: 'basic',
     iconUrl: 'images/icon128.png',
@@ -136,8 +139,14 @@ function showSuccessNotification(url) {
  * 显示错误通知
  * @param {string} url - 尝试添加的URL
  * @param {string} error - 错误信息
+ * @param {boolean} [showSystemNotification=false] - 是否显示系统通知
  */
-function showErrorNotification(url, error) {
+function showErrorNotification(url, error, showSystemNotification = false) {
+  // 如果不需要显示系统通知，则直接返回
+  if (!showSystemNotification) {
+    return;
+  }
+
   chrome.notifications.create({
     type: 'basic',
     iconUrl: 'images/icon128.png',
@@ -184,24 +193,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'capturedUrl') {
     sendToFeishu(message.url);
     sendResponse({ status: 'received' });
-  }
-});
-
-// 监听标签页更新事件
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url) {
-    // 检查是否需要记录此URL（可以添加过滤逻辑）
-    chrome.storage.sync.get(['autoCapture', 'excludedDomains'], (result) => {
-      if (result.autoCapture === true) {
-        // 检查是否在排除域名列表中
-        const url = new URL(tab.url);
-        const domain = url.hostname;
-
-        const excludedDomains = result.excludedDomains || [];
-        if (!excludedDomains.includes(domain)) {
-          sendToFeishu(tab.url);
-        }
-      }
-    });
   }
 });
