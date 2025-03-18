@@ -10,6 +10,7 @@ const autoCaptureCheckbox = document.getElementById('autoCapture');
 const currentUrlInput = document.getElementById('currentUrl');
 const captureButton = document.getElementById('captureButton');
 const optionsButton = document.getElementById('optionsButton');
+const notificationContainer = document.getElementById('notification-container');
 
 /**
  * 更新状态显示
@@ -53,7 +54,54 @@ function updateUIState() {
     // 设置自动捕获开关状态
     autoCaptureCheckbox.checked = result.autoCapture === true;
   });
+
+  // 检查是否有最新通知
+  chrome.storage.local.get(['lastNotification'], (result) => {
+    if (result.lastNotification) {
+      showNotificationInUI(result.lastNotification);
+    }
+  });
 }
+
+/**
+ * 在UI中显示通知
+ * @param {Object} notificationData - 通知数据
+ */
+function showNotificationInUI(notificationData) {
+  const { type, title, message, url } = notificationData;
+
+  // 根据通知类型添加按钮
+  let buttons = '';
+  if (type === 'success') {
+    buttons = `<button class="notification-action" data-action="openFeishuBitable">查看多维表格</button>`;
+  } else if (type === 'error') {
+    buttons = `
+      <button class="notification-action" data-action="retryUrl" data-url="${url}">重试</button>
+      <button class="notification-action" data-action="openOptions">查看设置</button>
+    `;
+  }
+
+  // 创建通知元素
+  if (type === 'success' || type === 'error' || type === 'info' || type === 'warning') {
+    window[`show${type.charAt(0).toUpperCase() + type.slice(1)}Notification`](title, message);
+  }
+}
+
+// 处理通知按钮点击
+document.addEventListener('click', (event) => {
+  if (event.target.classList.contains('notification-action')) {
+    const action = event.target.dataset.action;
+    const url = event.target.dataset.url;
+
+    if (action === 'openFeishuBitable') {
+      chrome.runtime.sendMessage({ action: 'openFeishuBitable' });
+    } else if (action === 'retryUrl' && url) {
+      chrome.runtime.sendMessage({ action: 'retryUrl', url });
+    } else if (action === 'openOptions') {
+      chrome.runtime.openOptionsPage();
+    }
+  }
+});
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -71,7 +119,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync' && (changes.feishuConfig || changes.autoCapture)) {
     updateUIState();
+  } else if (namespace === 'local' && changes.lastNotification) {
+    if (changes.lastNotification.newValue) {
+      showNotificationInUI(changes.lastNotification.newValue);
+    }
   }
+});
+
+// 监听来自background.js的消息
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'showNotification' && message.notification) {
+    showNotificationInUI(message.notification);
+    sendResponse({ status: 'notification_shown' });
+  }
+  return true; // 保持消息通道开放以便异步回应
 });
 
 // 自动捕获开关事件
@@ -106,11 +167,9 @@ captureButton.addEventListener('click', async () => {
 
       if (response && response.status === 'received') {
         updateStatus('URL已成功添加到飞书多维表格', 'success');
-        showSuccessNotification('添加成功', 'URL已成功添加到飞书多维表格');
       }
     } catch (error) {
       updateStatus('添加URL失败: ' + error.message, 'error');
-      showErrorNotification('添加失败', '无法添加URL: ' + error.message);
     } finally {
       // 恢复按钮状态
       captureButton.disabled = false;

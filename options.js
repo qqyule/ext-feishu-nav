@@ -340,3 +340,25 @@ newDomainInput.addEventListener('keypress', (e) => {
     addDomain(newDomainInput.value);
   }
 });
+
+/**
+ * 监听来自background.js的消息
+ */
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'showNotification' && message.notification) {
+    const { type, title, message: notificationMessage } = message.notification;
+
+    if (type === 'success') {
+      showSuccessNotification(title, notificationMessage);
+    } else if (type === 'error') {
+      showErrorNotification(title, notificationMessage);
+    } else if (type === 'warning') {
+      showWarningNotification(title, notificationMessage);
+    } else if (type === 'info') {
+      showInfoNotification(title, notificationMessage);
+    }
+
+    sendResponse({ status: 'notification_shown' });
+  }
+  return true; // 保持消息通道开放以便异步回应
+});
