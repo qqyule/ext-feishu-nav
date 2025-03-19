@@ -64,37 +64,34 @@ async function getTenantAccessToken() {
  */
 async function sendToFeishu(url) {
   try {
-    // 检查配置是否完整
-    if (!feishuConfig.appId || !feishuConfig.appSecret || !feishuConfig.appToken || !feishuConfig.tableId || !feishuConfig.fieldName) {
-      console.error('飞书配置不完整，请在选项页面设置');
-      return;
+    // 获取飞书配置
+    const { feishuConfig } = await chrome.storage.sync.get(['feishuConfig']);
+
+    if (!feishuConfig) {
+      throw new Error('未找到飞书配置');
     }
 
-    // 获取tenant_access_token
+    // 获取访问令牌
     const token = await getTenantAccessToken();
 
     // 构建请求数据
-    const requestData = {
-      fields: {}
+    const data = {
+      fields: {
+        [feishuConfig.fieldName]: url
+      }
     };
 
-    // 动态设置字段名
-    requestData.fields[feishuConfig.fieldName] = {
-      "text": url,
-      "type": "url",
-      "url": url
-    };
-
-    // 发送请求到飞书API - 更新API地址
+    // 发送请求到飞书API
     const response = await fetch(`https://open.feishu.cn/open-apis/bitable/v1/apps/${feishuConfig.appToken}/tables/${feishuConfig.tableId}/records`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(requestData)
+      body: JSON.stringify(data)
     });
 
+    // 解析响应
     const result = await response.json();
 
     if (result.code === 0) {

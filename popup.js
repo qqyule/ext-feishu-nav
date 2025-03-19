@@ -6,7 +6,6 @@
 
 // DOM元素
 const statusElement = document.getElementById('status');
-const autoCaptureCheckbox = document.getElementById('autoCapture');
 const currentUrlInput = document.getElementById('currentUrl');
 const captureButton = document.getElementById('captureButton');
 const optionsButton = document.getElementById('optionsButton');
@@ -40,7 +39,7 @@ function isConfigComplete(feishuConfig) {
  * 更新UI状态
  */
 function updateUIState() {
-  chrome.storage.sync.get(['feishuConfig', 'autoCapture'], (result) => {
+  chrome.storage.sync.get(['feishuConfig'], (result) => {
     // 检查飞书配置是否完整
     const feishuConfig = result.feishuConfig || {};
     if (isConfigComplete(feishuConfig)) {
@@ -50,9 +49,6 @@ function updateUIState() {
       updateStatus('请先完成飞书API配置', 'error');
       captureButton.disabled = true;
     }
-
-    // 设置自动捕获开关状态
-    autoCaptureCheckbox.checked = result.autoCapture === true;
   });
 
   // 检查是否有最新通知
@@ -117,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 监听存储变化，更新UI状态
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && (changes.feishuConfig || changes.autoCapture)) {
+  if (namespace === 'sync' && changes.feishuConfig) {
     updateUIState();
   } else if (namespace === 'local' && changes.lastNotification) {
     if (changes.lastNotification.newValue) {
