@@ -4,7 +4,8 @@
   "description": "飞书多维表格工具 - 自动捕获URL并发送到飞书多维表格",
   "main": "background.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf dist && mkdir -p dist/images && cp manifest.json popup.html popup.js options.html options.js content.js background.js styles.css notification.js dist/ && cp images/icon*.png dist/images/"
   },
   "keywords": [],
   "author": "",
